@@ -22,11 +22,14 @@ kaggle-titanic/
 ├─ notebooks/
 │  ├─ EDA.ipynb
 │  └─ main.ipynb
-└─ output/
-   ├─ report/
-   │  └─ baseline_notes.md
-   └─ submissions/
-      └─ submission.csv
+├─ output/
+│  ├─ report/
+│  │  └─ baseline_notes.md
+│  └─ submissions/
+│     └─ submission.csv
+└─ scripts/
+   ├─ train.py
+   └─ predict.py
 ```
 
 ## Data Preprocessing
