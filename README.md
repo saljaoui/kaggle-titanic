@@ -1,9 +1,10 @@
 # Titanic Survival Prediction (Kaggle)
 
 ## Introduction
-This project solves the [Kaggle Titanic: Machine Learning from Disaster](https://www.kaggle.com/competitions/titanic) competition task: predict whether each passenger survived (`Survived = 1`) or not (`Survived = 0`) using passenger information.
+This project solves the [Kaggle Titanic: Machine Learning from Disaster](https://www.kaggle.com/competitions/titanic) task: predict whether each passenger survived (`Survived = 1`) or not (`Survived = 0`).
 
-Project goal: build a strong baseline and target at least **78.9%** Kaggle accuracy.
+Current training and submission pipeline is implemented in:
+- `scripts/train_predict.py`
 
 ## Username
 `Saljaoui`
@@ -23,56 +24,58 @@ kaggle-titanic/
 │  ├─ EDA.ipynb
 │  └─ main.ipynb
 ├─ output/
+│  ├─ models/
+│  │  └─ titanic_model.pkl
 │  ├─ report/
 │  │  └─ baseline_notes.md
 │  └─ submissions/
 │     └─ submission.csv
 └─ scripts/
-   ├─ train.py
-   └─ predict.py
+   └─ train_predict.py
 ```
 
 ## Data Preprocessing
-Implemented in `notebooks/main.ipynb` (`preprocess_data`):
+Implemented in `scripts/train_predict.py` (`preprocess_data`):
 
-1. Missing values:
-   - `Age`: filled in train and test with the **train median age**.
-   - `Fare` (test only): filled with the **train median fare**.
-   - `Embarked`: filled in train and test with the **train mode**.
-2. Dropped columns:
-   - `Cabin` (high missingness).
-   - `PassengerId`, `Name`, `Ticket` (not used as model features).
-3. Target/feature split:
-   - Target: `Survived`
-   - Features: remaining processed columns.
-
-## Feature Engineering
-The project applies lightweight, explicit feature engineering:
-
-1. Categorical encoding:
+1. `Title` extraction from `Name` using regex.
+2. Title normalization:
+   - `Mlle -> Miss`
+   - `Ms -> Miss`
+   - `Mme -> Mrs`
+3. Missing values:
+   - `Age`: filled with title-based median age from train, then global train median as fallback.
+   - `Fare` (test only): filled with train median fare.
+   - `Embarked`: filled with train mode.
+4. Dropped columns:
+   - `Cabin`
+   - `PassengerId`, `Name`, `Ticket`
+5. Encoding:
    - `Sex`: `male -> 0`, `female -> 1`
    - `Embarked`: `S -> 0`, `C -> 1`, `Q -> 2`
-2. Final feature set:
-   - `Pclass`, `Sex`, `Age`, `SibSp`, `Parch`, `Fare`, `Embarked`
-
-No additional derived features (for example, title extraction, family-size features, or ticket group features) are implemented in the current baseline.
+   - `Title`: `Mr -> 0`, `Miss -> 1`, `Mrs -> 2`, `Master -> 3`, others -> `4`
+6. Target/feature split:
+   - Target: `Survived`
+   - Features: `Pclass`, `Sex`, `Age`, `SibSp`, `Parch`, `Fare`, `Embarked`, `Title`
 
 ## Model And Validation Strategy
-Implemented in `notebooks/main.ipynb`:
+Implemented in `scripts/train_predict.py`:
 
-- Model: `LogisticRegression(max_iter=1000)`
+- Model: `RandomForestClassifier(n_estimators=200, max_depth=5, random_state=42)`
 - Validation: `cross_val_score(..., cv=5, scoring="accuracy")`
 - Training flow:
-  1. preprocess data
-  2. evaluate with 5-fold cross-validation
-  3. fit model on full training data
-  4. predict on test data
-  5. write submission file
+  1. load `data/train.csv` and `data/test.csv`
+  2. preprocess train/test data
+  3. evaluate with 5-fold cross-validation
+  4. fit model on full training data
+  5. save model to `output/models/titanic_model.pkl`
+  6. predict on test data
+  7. save submission to `output/submissions/submission.csv`
 
 ## Scores
-- Cross-validation accuracy (mean, 5-fold): **0.7934906785512524** (~79.35%)
-- Kaggle public leaderboard score: **0.78xx** is mentioned in `output/report/baseline_notes.md` (exact score not recorded)
-- Exact Kaggle score placeholder: **`0.78xx`**
+Latest local run output:
+- Cross-validation accuracy (mean, 5-fold): **0.8249074132195091**
+
+Kaggle leaderboard score is not documented in this repository yet.
 
 ## How To Run
 1. Create and activate a Python environment.
@@ -80,22 +83,20 @@ Implemented in `notebooks/main.ipynb`:
    ```bash
    pip install -r requirements.txt
    ```
-3. Open Jupyter:
+3. Run training + prediction:
    ```bash
-   jupyter notebook
+   python3 scripts/train_predict.py
    ```
-4. Run `notebooks/main.ipynb` from top to bottom.
-5. Get predictions at:
-   - `output/submissions/submission.csv`
-6. Upload `submission.csv` to Kaggle for leaderboard evaluation.
+4. Generated files:
+   - Model: `output/models/titanic_model.pkl`
+   - Submission: `output/submissions/submission.csv`
 
 ## Requirements
 From `requirements.txt`:
-
-- `numpy`: numerical operations
-- `pandas`: data loading and tabular preprocessing
-- `matplotlib`: simple visualization of prediction distribution
-- `scikit-learn`: logistic regression model and cross-validation
+- `numpy`
+- `pandas`
+- `matplotlib`
+- `scikit-learn`
 
 ## Conclusion
-This repository implements a clean baseline Titanic pipeline using straightforward preprocessing, label encoding, and Logistic Regression with 5-fold cross-validation. The baseline reaches about **79.35% CV accuracy** and around the **high-0.78 Kaggle range**, establishing a solid starting point for further feature engineering and model improvements.
+The current baseline uses feature engineering with passenger title extraction and a RandomForest model. This pipeline reaches **0.8249 CV accuracy** and generates a ready-to-upload Kaggle submission file.
