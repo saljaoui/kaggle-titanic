@@ -60,7 +60,7 @@ Implemented in `scripts/train_predict.py` (`preprocess_data`):
 ## Model And Validation Strategy
 Implemented in `scripts/train_predict.py`:
 
-- Model: `RandomForestClassifier(n_estimators=200, max_depth=5, random_state=42)`
+- Model: `GradientBoostingClassifier(n_estimators=200, learning_rate=0.01, max_depth=3, max_features="sqrt", random_state=RANDOM_STATE)`
 - Validation: `cross_val_score(..., cv=5, scoring="accuracy")`
 - Training flow:
   1. load `data/train.csv` and `data/test.csv`
